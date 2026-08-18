@@ -457,10 +457,9 @@
       <a href="#come-funziona" data-i18n="nav_how">Come funziona</a>
     </div>
     <div class="nav-right">
-      <!-- Indicatore dello stato del server -->
       <div class="server-status-badge" id="navServerStatus">
-        <span class="status-dot" id="navStatusDot"></span>
-        <span id="navStatusText">Server...</span>
+        <span class="status-dot online" id="navStatusDot"></span>
+        <span id="navStatusText">Online</span>
       </div>
 
       <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
@@ -507,24 +506,8 @@
       <p data-i18n="notices_p">Rimani informato sullo stato del servizio, gli aggiornamenti di sistema e le novità.</p>
     </div>
 
-    <div class="notices-grid">
-      <div class="notice-card">
-        <span class="notice-badge maint" data-i18n="notice1_badge">⚙️ Manutenzione</span>
-        <h3 data-i18n="notice1_title">Manutenzione Server Programmata</h3>
-        <p data-i18n="notice1_desc">Sabato 22 Agosto dalle 02:00 alle 06:00 il servizio di interpretazione IA potrebbe subire brevi interruzioni per aggiornamenti di sistema.</p>
-      </div>
-
-      <div class="notice-card">
-        <span class="notice-badge update" data-i18n="notice2_badge">✨ Novità</span>
-        <h3 data-i18n="notice2_title">Salvataggio in Bozza</h3>
-        <p data-i18n="notice2_desc">Ora puoi salvare i tuoi sogni appena ti svegli e richiederne l'interpretazione IA in un secondo momento con un solo tocco.</p>
-      </div>
-
-      <div class="notice-card">
-        <span class="notice-badge info" data-i18n="notice3_badge">ℹ️ Info Servizio</span>
-        <h3 data-i18n="notice3_title">Stato dei Server Operativo</h3>
-        <p data-i18n="notice3_desc">Tutti i sistemi sono pienamente operativi. I tempi medi di risposta per l'interpretazione dei sogni sono inferiori a 3 secondi.</p>
-      </div>
+    <div class="notices-grid" id="noticesContainer">
+      <p style="color:var(--text-muted);">Caricamento avvisi...</p>
     </div>
   </section>
 
@@ -549,7 +532,7 @@
       <div class="feature">
         <div class="feature-icon" style="background:rgba(185,169,255,0.15); color:var(--lavender);">☾</div>
         <h3 data-i18n="feat3_title">Design pensato per la notte</h3>
-        <p data-i18n="feat3_desc">Un'interfaccia calma e intuitiva, comoda da usare al risveglio o prima di addormentarti.</p>
+        <p data-i18n="feat3_desc">Un'interfaccia calma e intuitive, comoda da usare al risveglio o prima di addormentarti.</p>
       </div>
       <div class="feature">
         <div class="feature-icon" style="background:rgba(255,178,107,0.15); color:var(--amber);">✧</div>
@@ -577,7 +560,7 @@
 
   <section id="come-funziona">
     <div class="section-head">
-      <div class="eyebrow mono" data-i18n="how_eyebrow">Come funziona</div>
+      <div class="eyebrow mono" data-i18n="how_eyebrow">Come funciona</div>
       <h2 data-i18n="how_h2">Tre passaggi, dal sogno alla comprensione.</h2>
     </div>
     <div class="steps">
@@ -618,8 +601,8 @@
     <span data-i18n="footer_copy">© 2026 Sogni — Roberto Zanaboni</span>
     <div class="footer-links">
       <span class="server-status-badge" id="footerServerStatus">
-        <span class="status-dot" id="footerStatusDot"></span>
-        <span id="footerStatusText">Server: ...</span>
+        <span class="status-dot online" id="footerStatusDot"></span>
+        <span id="footerStatusText">Server: Online</span>
       </span>
       <a href="https://play.google.com/store/apps/details?id=com.app.sogni" target="_blank" rel="noopener">Google Play</a>
       <a href="https://zanaries.altervista.org/privacy1.html" target="_blank" rel="noopener" data-i18n="footer_link2">Informativa Privacy</a>
@@ -627,7 +610,25 @@
   </div>
 </footer>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC2WYP1I9_WuLQyKp6Sw0cOWltpcqJZMok",
+    authDomain: "sogni-27748.firebaseapp.com",
+    projectId: "sogni-27748",
+    storageBucket: "sogni-27748.firebasestorage.app",
+    messagingSenderId: "988166300741",
+    appId: "1:988166300741:android:2d8eb9f5e0a5a4fb3b2f2c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let newsData = [];
+  let currentLang = 'it';
+
   const translations = {
     it: {
       nav_notices:"Avvisi", nav_features:"Funzionalità", nav_privacy:"Privacy", nav_how:"Come funziona", nav_cta:"Scarica gratis",
@@ -638,16 +639,12 @@
       hero_cta_primary:"Scarica su Google Play", hero_cta_secondary:"Scopri le funzionalità",
       hero_note_html:"<strong>Nessun dato condiviso, nessun dato raccolto.</strong> Gratuita, con annunci.",
       insight_line:"\"rappresenta il bisogno di lasciar andare il controllo\"",
-      fragments:["acqua","volo","porta chiusa","inseguimento","casa d'infanzia","buio","specchio","treno perso","mare","chiavi","scale","nebbia"],
       notices_eyebrow:"Comunicazioni", notices_h2:"Avvisi e Aggiornamenti", notices_p:"Rimani informato sullo stato del servizio, gli aggiornamenti di sistema e le novità.",
-      notice1_badge:"⚙️ Manutenzione", notice1_title:"Manutenzione Server Programmata", notice1_desc:"Sabato 22 Agosto dalle 02:00 alle 06:00 il servizio di interpretazione IA potrebbe subire brevi interruzioni per aggiornamenti di sistema.",
-      notice2_badge:"✨ Novità", notice2_title:"Salvataggio in Bozza", notice2_desc:"Ora puoi salvare i tuoi sogni appena ti svegli e richiederne l'interpretazione IA in un secondo momento con un solo tocco.",
-      notice3_badge:"ℹ️ Info Servizio", notice3_title:"Stato dei Server Operativo", notice3_desc:"Tutti i sistemi sono pienamente operativi. I tempi medi di risposta per l'interpretazione dei sogni sono inferiori a 3 secondi.",
       feat_eyebrow:"Funzionalità", feat_h2:"Dal sogno all'intuizione, in pochi tocchi.",
       feat_p:"Uno spazio pensato per la riflessione notturna: scrivi, capisci, ritrova.",
       feat1_title:"Interpretazione IA istantanea", feat1_desc:"Descrivi il sogno con parole tue e ricevi un'analisi approfondita di simboli, emozioni e significati nascosti.",
       feat2_title:"Diario dei sogni personale", feat2_desc:"Ogni sogno resta archiviato: rileggi le interpretazioni passate e nota i temi che ritornano nel tempo.",
-      feat3_title:"Design pensato per la notte", feat3_desc:"Un'interfaccia calma e intuitive, comoda da usare al risveglio o prima di addormentarti.",
+      feat3_title:"Design pensato per la notte", feat3_desc:"Un'interfaccia calma e intuitiva, comoda da usare al risveglio o prima di addormentarti.",
       feat4_title:"Riconosci gli schemi ricorrenti", feat4_desc:"Con il tempo, il diario aiuta a vedere collegamenti tra sogni diversi e stati d'animo.",
       privacy_eyebrow:"Privacy", privacy_h2:"I tuoi sogni restano tuoi.", privacy_p:"Quello che scrivi è personale per natura, quindi lo trattiamo di conseguenza.",
       privacy_badge1:"Nessun dato condiviso con terze parti", privacy_badge2:"Nessun dato raccolto", privacy_badge3:"Diario visibile solo a te",
@@ -657,9 +654,7 @@
       step2_title:"Ricevi l'interpretazione", step2_desc:"L'IA analizza simboli ed emozioni e ti restituisce un significato chiaro e approfondito.",
       step3_title:"Ritrova nel diario", step3_desc:"Ogni interpretazione resta salvata, per notare col tempo i temi che si ripetono.",
       cta_h2:"Il prossimo sogno merita una spiegazione.", cta_p:"Scarica Sogni gratis su Android e inizia il tuo diario onirico stanotte stesso.", cta_button:"Scarica su Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Informativa Privacy",
-      meta_title:"Sogni — Interpreta i tuoi sogni con l'IA",
-      meta_desc:"Racconta un sogno, ricevi un'interpretazione IA e tienila nel tuo diario personale. Nessun dato condiviso, nessun dato raccolto."
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Informativa Privacy"
     },
     en: {
       nav_notices:"Notices", nav_features:"Features", nav_privacy:"Privacy", nav_how:"How it works", nav_cta:"Download free",
@@ -670,11 +665,7 @@
       hero_cta_primary:"Get it on Google Play", hero_cta_secondary:"See the features",
       hero_note_html:"<strong>No data shared, no data collected.</strong> Free, with ads.",
       insight_line:"\"represents the need to let go of control\"",
-      fragments:["water","flying","locked door","being chased","childhood home","darkness","mirror","missed train","ocean","keys","stairs","fog"],
       notices_eyebrow:"Announcements", notices_h2:"Notices & Updates", notices_p:"Stay informed about service status, system updates, and new features.",
-      notice1_badge:"⚙️ Maintenance", notice1_title:"Scheduled Server Maintenance", notice1_desc:"Saturday, August 22, from 02:00 to 06:00, AI interpretation services may experience minor interruptions for system updates.",
-      notice2_badge:"✨ New Feature", notice2_title:"Save as Draft", notice2_desc:"You can now save your dreams right as you wake up and request an AI interpretation later with a single tap.",
-      notice3_badge:"ℹ️ Service Info", notice3_title:"Server Status Operational", notice3_desc:"All systems are fully operational. Average response time for dream interpretations is under 3 seconds.",
       feat_eyebrow:"Features", feat_h2:"From dream to insight, in a few taps.",
       feat_p:"A space built for night-time reflection: write, understand, revisit.",
       feat1_title:"Instant AI interpretation", feat1_desc:"Describe your dream in your own words and get a deep analysis of its symbols, emotions, and hidden meanings.",
@@ -689,9 +680,7 @@
       step2_title:"Get the interpretation", step2_desc:"The AI analyzes symbols and emotions and gives you a clear, in-depth meaning.",
       step3_title:"Find it in your journal", step3_desc:"Every interpretation stays saved, so you can notice recurring themes over time.",
       cta_h2:"Your next dream deserves an answer.", cta_p:"Download Sogni free on Android and start your dream journal tonight.", cta_button:"Get it on Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Privacy Policy",
-      meta_title:"Sogni — Interpret your dreams with AI",
-      meta_desc:"Describe a dream, get an AI interpretation, and keep it in your personal journal. No data shared, no data collected."
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Privacy Policy"
     },
     es: {
       nav_notices:"Avisos", nav_features:"Funciones", nav_privacy:"Privacidad", nav_how:"Cómo funciona", nav_cta:"Descargar gratis",
@@ -702,187 +691,160 @@
       hero_cta_primary:"Descargar en Google Play", hero_cta_secondary:"Ver funciones",
       hero_note_html:"<strong>Sin datos compartidos, sin datos recopilados.</strong> Gratis, con anuncios.",
       insight_line:"\"representa la necesidad de soltar el control\"",
-      fragments:["agua","volar","puerta cerrada","persecución","casa de la infancia","oscuridad","espejo","tren perdido","mar","llaves","escaleras","niebla"],
       notices_eyebrow:"Comunicaciones", notices_h2:"Avisos y Actualizaciones", notices_p:"Mantente informado sobre el estado del servicio, actualizaciones de sistema y novedades.",
-      notice1_badge:"⚙️ Mantenimiento", notice1_title:"Mantenimiento del Servidor Programado", notice1_desc:"El sábado 22 de agosto, de 02:00 a 06:00, el servicio de interpretación por IA puede sufrir breves interrupciones por actualizaciones.",
-      notice2_badge:"✨ Novedad", notice2_title:"Guardar como Borrador", notice2_desc:"Ahora puedes guardar tus sueños nada más despertarte y solicitar la interpretación de la IA más tarde con un solo toque.",
-      notice3_badge:"ℹ️ Info Servicio", notice3_title:"Estado del Servidor Operativo", notice3_desc:"Todos los sistemas están plenamente operativos. El tiempo medio de respuesta para interpretaciones es inferior a 3 segundos.",
-      feat_eyebrow:"Funciones", feat_h2:"Del sueño a la comprensión, en pocos toques.",
-      feat_p:"Un espacio pensado para la reflexión nocturna: escribe, comprende, revisita.",
-      feat1_title:"Interpretación IA instantánea", feat1_desc:"Describe tu sueño con tus propias palabras y recibe un análisis profundo de sus símbolos, emociones y significados ocultos.",
-      feat2_title:"Diario de sueños personal", feat2_desc:"Cada sueño queda guardado: revisa interpretaciones pasadas y detecta los temas que se repiten con el tiempo.",
-      feat3_title:"Diseñado para la noche", feat3_desc:"Una interfaz tranquila e intuitiva, cómoda de usar al despertar o antes de dormir.",
-      feat4_title:"Detecta patrones recurrentes", feat4_desc:"Con el tiempo, el diario te ayuda a ver conexiones entre distintos sueños y estados de ánimo.",
+      feat_eyebrow:"Funciones", feat_h2:"Del sueño a la intuición, en pocos toques.",
+      feat_p:"Un espacio pensado para la reflexión nocturna: escribe, comprende, reencuentra.",
+      feat1_title:"Interpretación IA instantánea", feat1_desc:"Describe el sueño con tus palabras y recibe un análisis profundo de símbolos, emociones y significados ocultos.",
+      feat2_title:"Diario de sueños personal", feat2_desc:"Cada sueño se archiva: relee interpretaciones pasadas y nota temas recurrentes.",
+      feat3_title:"Diseñado para la noche", feat3_desc:"Una interfaz calma e intuitiva, cómoda de usar al despertar o antes de dormir.",
+      feat4_title:"Reconoce patrones recurrentes", feat4_desc:"Con el tiempo, el diario ayuda a ver conexiones entre diferentes sueños y estados de ánimo.",
       privacy_eyebrow:"Privacidad", privacy_h2:"Tus sueños siguen siendo tuyos.", privacy_p:"Lo que escribes es personal por naturaleza, así que lo tratamos en consecuencia.",
-      privacy_badge1:"Ningún dato compartido con terceros", privacy_badge2:"Ningún dato recopilado", privacy_badge3:"Diario visible solo para ti",
-      privacy_note:"Las prácticas de privacidad las declara el desarrollador y pueden variar según el uso, la región y la edad. Consulta la política completa en la ficha de la app.",
+      privacy_badge1:"Sin datos compartidos con terceros", privacy_badge2:"Sin datos recopilados", privacy_badge3:"Diario visible solo para ti",
+      privacy_note:"Las prácticas de privacidad son declaradas por el desarrollador. Consulta la política completa en Google Play.",
       how_eyebrow:"Cómo funciona", how_h2:"Tres pasos, del sueño a la comprensión.",
-      step1_title:"Cuenta el sueño", step1_desc:"Escribe lo que recuerdes, aunque sea de forma fragmentada: detalles, emociones, imágenes.",
-      step2_title:"Recibe la interpretación", step2_desc:"La IA analiza símbolos y emociones y te da un significado claro y detallado.",
-      step3_title:"Encuéntralo en tu diario", step3_desc:"Cada interpretación queda guardada, para notar con el tiempo los temas que se repiten.",
-      cta_h2:"Tu próximo sueño merece una explicación.", cta_p:"Descarga Sogni gratis en Android y empieza tu diario de sueños esta misma noche.", cta_button:"Descargar en Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Política de privacidad",
-      meta_title:"Sogni — Interpreta tus sueños con IA",
-      meta_desc:"Cuenta un sueño, recibe una interpretación con IA y guárdala en tu diario personal. Sin datos compartidos, sin datos recopilados."
+      step1_title:"Cuenta el sueño", step1_desc:"Escribe lo que recuerdes, aunque sea fragmentado: detalles, emociones, imágenes.",
+      step2_title:"Recibe la interpretación", step2_desc:"La IA analiza símbolos y emociones y te devuelve un significado claro.",
+      step3_title:"Encuéntralo en tu diario", step3_desc:"Cada interpretación se guarda para que notes patrones con el tiempo.",
+      cta_h2:"Tu próximo sueño merece una explicación.", cta_p:"Descarga Sogni gratis en Android y comienza tu diario nocturno hoy.", cta_button:"Descargar en Google Play",
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Política de privacidad"
     },
     fr: {
-      nav_notices:"Avis", nav_features:"Fonctionnalités", nav_privacy:"Confidentialité", nav_how:"Comment ça marche", nav_cta:"Télécharger gratuitement",
-      hero_eyebrow:"Journal et interprétation des rêves · IA",
-      hero_h1_html:"Chaque rêve a un <em>sens</em>. Découvrez-le au réveil.",
-      hero_lead:"Racontez votre rêve avec vos propres mots : Sogni l'analyse avec l'intelligence artificielle et vous donne symboles, émotions et une interprétation claire, aussitôt enregistrée dans votre journal personnel.",
-      draft_info:"Vous pouvez également enregistrer votre rêve en tant que brouillon et l'interpréter ultérieurement.",
-      hero_cta_primary:"Télécharger sur Google Play", hero_cta_secondary:"Découvrir les fonctionnalités",
-      hero_note_html:"<strong>Aucune donnée partagée, aucune donnée collectée.</strong> Gratuite, avec publicités.",
+      nav_notices:"Annonces", nav_features:"Fonctionnalités", nav_privacy:"Confidentialité", nav_how:"Comment ça marche", nav_cta:"Télécharger",
+      hero_eyebrow:"Journal & interprétation de rêves · IA",
+      hero_h1_html:"Chaque rêve a une <em>signification</em>. Découvrez-la au réveil.",
+      hero_lead:"Racontez votre rêve avec vos mots : Sogni l'analyse avec l'IA et vous donne symboles, émotions et une interprétation claire.",
+      draft_info:"Vous pouvez aussi enregistrer votre rêve en brouillon et l'interpréter plus tard.",
+      hero_cta_primary:"Obtenir sur Google Play", hero_cta_secondary:"Découvrir les fonctionnalités",
+      hero_note_html:"<strong>Aucune donnée partagée, aucune donnée collectée.</strong> Gratuit, avec annonces.",
       insight_line:"\"représente le besoin de lâcher prise\"",
-      fragments:["eau","voler","porte fermée","poursuite","maison d'enfance","obscurité","miroir","train manqué","mer","clés","escaliers","brouillard"],
-      notices_eyebrow:"Communications", notices_h2:"Avis et Mises à jour", notices_p:"Restez informé de l'état du service, des mises à jour système et des nouveautés.",
-      notice1_badge:"⚙️ Maintenance", notice1_title:"Maintenance Serveur Programmée", notice1_desc:"Samedi 22 août de 02:00 à 06:00, le service d'interprétation IA pourra subir de courtes interruptions pour mise à jour.",
-      notice2_badge:"✨ Nouveauté", notice2_title:"Enregistrement en Brouillon", notice2_desc:"Vous pouvez désormais enregistrer vos rêves dès votre réveil et demander l'interprétation IA plus tard en un seul geste.",
-      notice3_badge:"ℹ️ Info Service", notice3_title:"État des Serveurs Opérationnel", notice3_desc:"Tous les systèmes sont pleinement opérationnels. Le temps de réponse moyen pour une interprétation est inférieur à 3 secondes.",
-      feat_eyebrow:"Fonctionnalités", feat_h2:"Du rêve à la compréhension, en quelques gestes.",
-      feat_p:"Un espace pensé pour la réflexion nocturne : écrire, comprendre, revenir en arrière.",
-      feat1_title:"Interprétation IA instantanée", feat1_desc:"Décrivez votre rêve avec vos propres mots et recevez une analyse approfondie des symboles, émotions et significations cachées.",
-      feat2_title:"Journal des rêves personnel", feat2_desc:"Chaque rêve reste archivé : relisez les interprétations passées et repérez les thèmes qui reviennent au fil du temps.",
-      feat3_title:"Pensé pour la nuit", feat3_desc:"Une interface calme et intuitive, agréable à utiliser au réveil ou avant de s'endormir.",
-      feat4_title:"Repérez les schémas récurrents", feat4_desc:"Avec le temps, le journal aide à voir les liens entre différents rêves et états d'esprit.",
-      privacy_eyebrow:"Confidentialité", privacy_h2:"Vos rêves vous appartiennent.", privacy_p:"Ce que vous écrivez est personnel par nature, nous le traitons donc comme tel.",
-      privacy_badge1:"Aucune donnée partagée avec des tiers", privacy_badge2:"Aucune donnée collectée", privacy_badge3:"Journal visible uniquement par vous",
-      privacy_note:"Les pratiques de confidentialité sont déclarées par le développeur et peuvent varier selon l'usage, la région et l'âge. Consultez la politique complète sur la fiche de l'application.",
-      how_eyebrow:"Comment ça marche", how_h2:"Trois étapes, du rêve à la compréhension.",
-      step1_title:"Racontez le rêve", step1_desc:"Écrivez ce dont vous vous souvenez, même de façon fragmentée : détails, émotions, images.",
-      step2_title:"Recevez l'interprétation", step2_desc:"L'IA analyse symboles et émotions et vous donne un sens clair et approfondi.",
-      step3_title:"Retrouvez-le dans le journal", step3_desc:"Chaque interprétation reste enregistrée, pour repérer avec le temps les thèmes qui se répètent.",
-      cta_h2:"Votre prochain rêve mérite une explication.", cta_p:"Téléchargez Sogni gratuitement sur Android et commencez votre journal ce soir.", cta_button:"Télécharger sur Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Politique de confidentialité",
-      meta_title:"Sogni — Interprétez vos rêves avec l'IA",
-      meta_desc:"Racontez un rêve, obtenez une interprétation IA et conservez-la dans votre journal personnel. Aucune donnée partagée ni collectée."
+      notices_eyebrow:"Communications", notices_h2:"Annonces et Mises à jour", notices_p:"Reste informé du statut du service et des nouveautés.",
+      feat_eyebrow:"Fonctionnalités", feat_h2:"Du rêve à la compréhension en quelques gestes.",
+      feat_p:"Un espace conçu pour la réflexion nocturne : écrivez, comprenez, retrouvez.",
+      feat1_title:"Interprétation IA instantanée", feat1_desc:"Décrivez votre rêve et recevez une analyse détaillée des symboles et émotions.",
+      feat2_title:"Journal de rêves personnel", feat2_desc:"Chaque rêve est archivé : relisez vos interprétations passées au fil du temps.",
+      feat3_title:"Conçu pour la nuit", feat3_desc:"Une interface apaisante et intuitive, facile à utiliser au réveil.",
+      feat4_title:"Identifiez les schémas récurrents", feat4_desc:"Remarquez les connexions entre vos différents rêves.",
+      privacy_eyebrow:"Confidentialité", privacy_h2:"Vos rêves restent les votres.", privacy_p:"Ce que vous écrivez est strictement personnel.",
+      privacy_badge1:"Aucune donnée partagée", privacy_badge2:"Aucune donnée collectée", privacy_badge3:"Journal visible par vous seul",
+      privacy_note:"Consultez la politique de confidentialité complète sur la fiche de l'application.",
+      how_eyebrow:"Comment ça marche", how_h2:"Trois étapes du rêve à la compréhension.",
+      step1_title:"Racontez le rêve", step1_desc:"Écrivez ce dont vous vous souvenez, même de façon fragmentée.",
+      step2_title:"Recevez l'interprétation", step2_desc:"L'IA analyse les symboles pour vous offrir un sens clair.",
+      step3_title:"Retrouvez dans le journal", step3_desc:"Toutes les interprétations restent sauvegardées.",
+      cta_h2:"Votre prochain rêve mérite une explication.", cta_p:"Téléchargez Sogni gratuitement sur Android.", cta_button:"Obtenir sur Google Play",
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Politique de confidentialité"
     },
     de: {
-      nav_notices:"Hinweise", nav_features:"Funktionen", nav_privacy:"Datenschutz", nav_how:"So funktioniert's", nav_cta:"Kostenlos herunterladen",
+      nav_notices:"Hinweise", nav_features:"Funktionen", nav_privacy:"Datenschutz", nav_how:"Wie es funktioniert", nav_cta:"Kostenlos herunterladen",
       hero_eyebrow:"Traumtagebuch & KI-Deutung",
-      hero_h1_html:"Jeder Traum hat eine <em>Bedeutung</em>. Entdecke sie beim Aufwachen.",
-      hero_lead:"Erzähle deinen Traum in eigenen Worten: Sogni analysiert ihn mit KI und liefert dir Symbole, Emotionen und eine klare Deutung direkt in dein Tagebuch.",
+      hero_h1_html:"Jeder Traum hat eine <em>Bedeutung</em>. Erfahre sie beim Aufwachen.",
+      hero_lead:"Erzähle deinen Traum in deinen eigenen Worten: Sogni analysiert ihn mit KI und zeigt dir Symbole, Emotionen und eine klare Deutung.",
       draft_info:"Du kannst deinen Traum auch als Entwurf speichern und später deuten lassen.",
       hero_cta_primary:"Auf Google Play holen", hero_cta_secondary:"Funktionen entdecken",
-      hero_note_html:"<strong>Keine Daten geteilt, keine Daten gesammelt.</strong> Kostenlos, mit Werbung.",
-      insight_line:"\"repräsentiert das Bedürfnis, Kontrolle loszulassen\"",
-      fragments:["Wasser","Fliegen","verschlossene Tür","Verfolgung","Elternhaus","Dunkelheit","Spiegel","verpasster Zug","Meer","Schlüssel","Treppe","Nebel"],
-      notices_eyebrow:"Mitteilungen", notices_h2:"Hinweise & Updates", notices_p:"Bleibe über den Servicestatus, Systemupdates und Neuerungen informiert.",
-      notice1_badge:"⚙️ Wartung", notice1_title:"Geplante Serverwartung", notice1_desc:"Am Samstag, 22. August, von 02:00 bis 06:00 Uhr kann es aufgrund von Systemupdates zu kurzen Unterbrechungen kommen.",
-      notice2_badge:"✨ Neuheit", notice2_title:"Als Entwurf speichern", notice2_desc:"Du kannst deine Träume jetzt direkt nach dem Aufwachen speichern und die KI-Deutung später mit einem Tipp anfordern.",
-      notice3_badge:"ℹ️ Service Info", notice3_title:"Serverstatus Betriebsbereit", notice3_desc:"Alle Systeme laufen einwandfrei. Die durchschnittliche Antwortzeit für Traumdeutungen liegt unter 3 Sekunden.",
-      feat_eyebrow:"Funktionen", feat_h2:"Vom Traum zur Erkenntnis in wenigen Schritten.",
+      hero_note_html:"<strong>Keine Daten geteilt, keine Daten gesammelt.</strong> Kostenlos mit Werbung.",
+      insight_line:"\"steht für das Bedürfnis, die Kontrolle loszulassen\"",
+      notices_eyebrow:"Mitteilungen", notices_h2:"Hinweise & Updates", notices_p:"Bleibe über den Serverstatus und System-Updates informiert.",
+      feat_eyebrow:"Funktionen", feat_h2:"Vom Traum zur Erkenntnis mit wenigen Taps.",
       feat_p:"Ein Raum für nächtliche Reflexion: schreiben, verstehen, wiederfinden.",
-      feat1_title:"Sofortige KI-Deutung", feat1_desc:"Beschreibe deinen Traum in eigenen Worten und erhalte eine tiefe Analyse von Symbolen und Gefühlen.",
-      feat2_title:"Persönliches Traumtagebuch", feat2_desc:"Jeder Traum bleibt gespeichert: Lies vergangene Deutungen und erkenne wiederkehrende Themen.",
-      feat3_title:"Für die Nacht entwickelt", feat3_desc:"Eine ruhige, intuitive Benutzeroberfläche, ideal direkt nach dem Aufwachen.",
-      feat4_title:"Wiederkehrende Muster erkennen", feat4_desc:"Mit der Zeit hilft das Tagebuch, Verbindungen zwischen Träumen und Stimmungen zu erkennen.",
-      privacy_eyebrow:"Datenschutz", privacy_h2:"Deine Träume gehören dir.", privacy_p:"Was du schreibst ist von Natur aus persönlich, und genau so behandeln wir es.",
+      feat1_title:"Sofortige KI-Deutung", feat1_desc:"Beschreibe deinen Traum und erhalte eine tiefe Analyse der verborgenen Bedeutungen.",
+      feat2_title:"Persönliches Traumtagebuch", feat2_desc:"Jeder Traum bleibt gespeichert: lies vergangene Deutungen jederzeit nach.",
+      feat3_title:"Für die Nacht entwickelt", feat3_desc:"Eine ruhige, intuitive Benutzeroberfläche für den Morgen oder die Nacht.",
+      feat4_title:"Wiederkehrende Muster erkennen", feat4_desc:"Erkenne Verbindungen zwischen verschiedenen Träumen und Stimmungen.",
+      privacy_eyebrow:"Datenschutz", privacy_h2:"Deine Träume gehören dir.", privacy_p:"Was du schreibst ist persönlich und bleibt geschützt.",
       privacy_badge1:"Keine Datenweitergabe an Dritte", privacy_badge2:"Keine Datenerfassung", privacy_badge3:"Tagebuch nur für dich sichtbar",
-      privacy_note:"Datenschutzbestimmungen werden vom Entwickler angegeben. Weitere Details findest du im App Store.",
-      how_eyebrow:"So funktioniert's", how_h2:"Drei Schritte vom Traum zum Verständnis.",
-      step1_title:"Traum erzählen", step1_desc:"Schreibe auf, woran du dich erinnerst: Details, Gefühle, Bilder.",
-      step2_title:"Deutung erhalten", step2_desc:"Die KI analysiert Symbole und Gefühle und gibt dir eine klare Bedeutung.",
-      step3_title:"Im Tagebuch wiederfinden", step3_desc:"Jede Deutung bleibt gespeichert, um wiederkehrende Muster zu erkennen.",
-      cta_h2:"Dein nächster Traum verdient eine Antwort.", cta_p:"Lade Sogni kostenlos auf Android herunter und starte heute Nacht dein Tagebuch.", cta_button:"Auf Google Play holen",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Datenschutzerklärung",
-      meta_title:"Sogni — Deute deine Träume mit KI",
-      meta_desc:"Beschreibe einen Traum, erhalte eine KI-Deutung und bewahre sie in deinem persönlichen Tagebuch auf. Keine Daten geteilt."
+      privacy_note:"Lies die vollständige Datenschutzerklärung im Store-Eintrag der App.",
+      how_eyebrow:"Wie es funktioniert", how_h2:"Drei Schritte vom Traum zum Verständnis.",
+      step1_title:"Traum erzählen", step1_desc:"Schreibe auf, woran du dich erinnerst, auch in Fragmenten.",
+      step2_title:"Deutung erhalten", step2_desc:"Die KI analysiert Symbole und liefert dir eine klare Bedeutung.",
+      step3_title:"Im Tagebuch wiederfinden", step3_desc:"Jede Deutung bleibt dauerhaft gespeichert.",
+      cta_h2:"Dein nächster Traum verdient eine Erklärung.", cta_p:"Lade Sogni gratis für Android herunter.", cta_button:"Auf Google Play holen",
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Datenschutzrichtlinie"
     }
   };
 
-  function setLanguage(lang) {
-    const data = translations[lang] || translations.it;
+  function getBadgeCss(badgeType) {
+    switch((badgeType || '').toLowerCase()) {
+      case 'maint':
+      case 'manutenzione':
+      case 'maintenance': return 'maint';
+      case 'update':
+      case 'novità':
+      case 'feature': return 'update';
+      default: return 'info';
+    }
+  }
 
-    // Aggiorna elementi textContent
+  function renderNews() {
+    const container = document.getElementById('noticesContainer');
+    if (!container) return;
+
+    if (!newsData || newsData.length === 0) {
+      container.innerHTML = `<p style="color:var(--text-muted);">Nessun avviso presente.</p>`;
+      return;
+    }
+
+    container.innerHTML = newsData.map(item => {
+      const title = (item.title && typeof item.title === 'object')
+        ? (item.title[currentLang] || item.title['it'] || item.title['en'] || '')
+        : (item.title || '');
+
+      const content = (item.content && typeof item.content === 'object')
+        ? (item.content[currentLang] || item.content['it'] || item.content['en'] || '')
+        : (item.content || '');
+
+      const badgeText = (item.badge && typeof item.badge === 'object')
+        ? (item.badge[currentLang] || item.badge['it'] || item.badge['en'] || 'ℹ️ Info')
+        : (item.badge || 'ℹ️ Info');
+
+      const badgeCss = getBadgeCss(item.type || item.badgeType || 'info');
+
+      return `
+        <div class="notice-card">
+          <span class="notice-badge ${badgeCss}">${badgeText}</span>
+          <h3>${title}</h3>
+          <p>${content}</p>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updatePageLanguage(lang) {
+    currentLang = lang;
+    const dictionary = translations[lang] || translations['it'];
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
-      if (data[key]) el.textContent = data[key];
+      if (dictionary[key]) el.textContent = dictionary[key];
     });
 
-    // Aggiorna elementi innerHTML
     document.querySelectorAll('[data-i18n-html]').forEach(el => {
       const key = el.getAttribute('data-i18n-html');
-      if (data[key]) el.innerHTML = data[key];
+      if (dictionary[key]) el.innerHTML = dictionary[key];
     });
 
-    // Aggiorna Meta Tags
-    if (data.meta_title) document.getElementById('metaTitle').textContent = data.meta_title;
-    if (data.meta_desc) document.getElementById('metaDesc').setAttribute('content', data.meta_desc);
+    renderNews();
+  }
 
-    // Aggiorna i pulsanti lingua
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  const newsRef = collection(db, "news");
+  onSnapshot(newsRef, (snapshot) => {
+    newsData = [];
+    snapshot.forEach(doc => {
+      newsData.push({ id: doc.id, ...doc.data() });
     });
-
-    // Rigenera i frammenti fluttuanti nella visual hero
-    renderFragments(data.fragments || translations.it.fragments);
-
-    document.documentElement.lang = lang;
-  }
-
-  function renderFragments(words) {
-    const container = document.getElementById('fragments');
-    if (!container) return;
-    container.innerHTML = '';
-    words.forEach((w, i) => {
-      const span = document.createElement('span');
-      span.className = 'fragment';
-      span.textContent = w;
-      span.style.animationDelay = `${(i * 0.5).toFixed(1)}s`;
-      container.appendChild(span);
-    });
-  }
-
-  function renderStars() {
-    const container = document.getElementById('stars');
-    if (!container) return;
-    container.innerHTML = '';
-    for (let i = 0; i < 35; i++) {
-      const star = document.createElement('span');
-      star.style.top = `${Math.random() * 100}%`;
-      star.style.left = `${Math.random() * 100}%`;
-      star.style.animationDelay = `${(Math.random() * 3.5).toFixed(1)}s`;
-      container.appendChild(star);
-    }
-  }
-
-  // Listener per cambio lingua
-  document.getElementById('langSwitch').addEventListener('click', (e) => {
-    if (e.target.classList.contains('lang-btn')) {
-      const lang = e.target.getAttribute('data-lang');
-      setLanguage(lang);
-    }
+    renderNews();
+  }, (error) => {
+    console.error("Errore nel recupero delle news da Firebase:", error);
+    document.getElementById('noticesContainer').innerHTML = `<p style="color:var(--text-muted);">Impossibile caricare gli avvisi.</p>`;
   });
 
-  // Simulazione stato server
-  function checkServerStatus() {
-    const isOnline = true; // Impostare a false per simulare offline
-    const navDot = document.getElementById('navStatusDot');
-    const navText = document.getElementById('navStatusText');
-    const footerDot = document.getElementById('footerStatusDot');
-    const footerText = document.getElementById('footerStatusText');
-
-    if (isOnline) {
-      navDot.className = 'status-dot online';
-      navText.textContent = 'Server Online';
-      footerDot.className = 'status-dot online';
-      footerText.textContent = 'Server: Online';
-    } else {
-      navDot.className = 'status-dot offline';
-      navText.textContent = 'Server Offline';
-      footerDot.className = 'status-dot offline';
-      footerText.textContent = 'Server: Offline';
-    }
-  }
-
-  // Inizializzazione
-  document.addEventListener('DOMContentLoaded', () => {
-    renderStars();
-    setLanguage('it');
-    checkServerStatus();
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const lang = btn.getAttribute('data-lang');
+      updatePageLanguage(lang);
+    });
   });
 </script>
-
 </body>
 </html>
