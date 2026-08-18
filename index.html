@@ -312,6 +312,19 @@
     transform:translateY(-2px);
   }
 
+  .notice-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+  }
+
+  .notice-date{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--text-muted);
+  }
+
   .notice-badge{
     display:inline-flex;
     align-items:center;
@@ -493,7 +506,12 @@
 
     <div class="hero-visual">
       <div class="stars" id="stars"></div>
-      <div class="fragments" id="fragments"></div>
+      <div class="fragments" id="fragments">
+        <span class="fragment" style="animation-delay:0s">#volare</span>
+        <span class="fragment" style="animation-delay:1.2s">#acqua</span>
+        <span class="fragment" style="animation-delay:2.4s">#labirinto</span>
+        <span class="fragment" style="animation-delay:3.6s">#chiavi</span>
+      </div>
       <div class="insight-line" id="insightLine" data-i18n="insight_line">"rappresenta il bisogno di lasciar andare il controllo"</div>
     </div>
   </section>
@@ -532,7 +550,7 @@
       <div class="feature">
         <div class="feature-icon" style="background:rgba(185,169,255,0.15); color:var(--lavender);">☾</div>
         <h3 data-i18n="feat3_title">Design pensato per la notte</h3>
-        <p data-i18n="feat3_desc">Un'interfaccia calma e intuitive, comoda da usare al risveglio o prima di addormentarti.</p>
+        <p data-i18n="feat3_desc">Un'interfaccia calma e intuitiva, comoda da usare al risveglio o prima di addormentarti.</p>
       </div>
       <div class="feature">
         <div class="feature-icon" style="background:rgba(255,178,107,0.15); color:var(--amber);">✧</div>
@@ -560,7 +578,7 @@
 
   <section id="come-funziona">
     <div class="section-head">
-      <div class="eyebrow mono" data-i18n="how_eyebrow">Come funciona</div>
+      <div class="eyebrow mono" data-i18n="how_eyebrow">Come funziona</div>
       <h2 data-i18n="how_h2">Tre passaggi, dal sogno alla comprensione.</h2>
     </div>
     <div class="steps">
@@ -612,7 +630,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC2WYP1I9_WuLQyKp6Sw0cOWltpcqJZMok",
@@ -626,7 +644,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let newsData = [];
+  let rawNoticesDocs = [];
   let currentLang = 'it';
 
   const translations = {
@@ -654,7 +672,8 @@
       step2_title:"Ricevi l'interpretazione", step2_desc:"L'IA analizza simboli ed emozioni e ti restituisce un significato chiaro e approfondito.",
       step3_title:"Ritrova nel diario", step3_desc:"Ogni interpretazione resta salvata, per notare col tempo i temi che si ripetono.",
       cta_h2:"Il prossimo sogno merita una spiegazione.", cta_p:"Scarica Sogni gratis su Android e inizia il tuo diario onirico stanotte stesso.", cta_button:"Scarica su Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Informativa Privacy"
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Informativa Privacy",
+      no_notices:"Nessun avviso al momento."
     },
     en: {
       nav_notices:"Notices", nav_features:"Features", nav_privacy:"Privacy", nav_how:"How it works", nav_cta:"Download free",
@@ -680,7 +699,8 @@
       step2_title:"Get the interpretation", step2_desc:"The AI analyzes symbols and emotions and gives you a clear, in-depth meaning.",
       step3_title:"Find it in your journal", step3_desc:"Every interpretation stays saved, so you can notice recurring themes over time.",
       cta_h2:"Your next dream deserves an answer.", cta_p:"Download Sogni free on Android and start your dream journal tonight.", cta_button:"Get it on Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Privacy Policy"
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Privacy Policy",
+      no_notices:"No notices at the moment."
     },
     es: {
       nav_notices:"Avisos", nav_features:"Funciones", nav_privacy:"Privacidad", nav_how:"Cómo funciona", nav_cta:"Descargar gratis",
@@ -706,13 +726,14 @@
       step2_title:"Recibe la interpretación", step2_desc:"La IA analiza símbolos y emociones y te devuelve un significado claro.",
       step3_title:"Encuéntralo en tu diario", step3_desc:"Cada interpretación se guarda para que notes patrones con el tiempo.",
       cta_h2:"Tu próximo sueño merece una explicación.", cta_p:"Descarga Sogni gratis en Android y comienza tu diario nocturno hoy.", cta_button:"Descargar en Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Política de privacidad"
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Política de privacidad",
+      no_notices:"No hay avisos en este momento."
     },
     fr: {
       nav_notices:"Annonces", nav_features:"Fonctionnalités", nav_privacy:"Confidentialité", nav_how:"Comment ça marche", nav_cta:"Télécharger",
       hero_eyebrow:"Journal & interprétation de rêves · IA",
       hero_h1_html:"Chaque rêve a une <em>signification</em>. Découvrez-la au réveil.",
-      hero_lead:"Racontez votre rêve avec vos mots : Sogni l'analyse avec l'IA et vous donne symboles, émotions et une interprétation claire.",
+      hero_lead:"Racontez votre rêve avec vos mots : Sogni l'analyse avec l'IA et vous donne symboles, émotions et une interprétation claire, enregistrée directement dans votre journal.",
       draft_info:"Vous pouvez aussi enregistrer votre rêve en brouillon et l'interpréter plus tard.",
       hero_cta_primary:"Obtenir sur Google Play", hero_cta_secondary:"Découvrir les fonctionnalités",
       hero_note_html:"<strong>Aucune donnée partagée, aucune donnée collectée.</strong> Gratuit, avec annonces.",
@@ -720,131 +741,179 @@
       notices_eyebrow:"Communications", notices_h2:"Annonces et Mises à jour", notices_p:"Reste informé du statut du service et des nouveautés.",
       feat_eyebrow:"Fonctionnalités", feat_h2:"Du rêve à la compréhension en quelques gestes.",
       feat_p:"Un espace conçu pour la réflexion nocturne : écrivez, comprenez, retrouvez.",
-      feat1_title:"Interprétation IA instantanée", feat1_desc:"Décrivez votre rêve et recevez une analyse détaillée des symboles et émotions.",
-      feat2_title:"Journal de rêves personnel", feat2_desc:"Chaque rêve est archivé : relisez vos interprétations passées au fil du temps.",
-      feat3_title:"Conçu pour la nuit", feat3_desc:"Une interface apaisante et intuitive, facile à utiliser au réveil.",
-      feat4_title:"Identifiez les schémas récurrents", feat4_desc:"Remarquez les connexions entre vos différents rêves.",
-      privacy_eyebrow:"Confidentialité", privacy_h2:"Vos rêves restent les votres.", privacy_p:"Ce que vous écrivez est strictement personnel.",
+      feat1_title:"Interprétation IA instantanée", feat1_desc:"Décrivez votre rêve avec vos mots et recevez une analyse approfondie des symboles et des émotions.",
+      feat2_title:"Journal de rêves personnel", feat2_desc:"Chaque rêve reste archivé : relisez les interprétations passées et repérez les thèmes récurrents.",
+      feat3_title:"Conçu pour la nuit", feat3_desc:"Une interface calme et intuitive, agréable à utiliser au réveil ou avant de s'endormir.",
+      feat4_title:"Identifiez les motifs récurrents", feat4_desc:"Au fil du temps, le journal vous aide à voir les liens entre vos rêves et vos humeurs.",
+      privacy_eyebrow:"Confidentialité", privacy_h2:"Vos rêves vous appartiennent.", privacy_p:"Ce que vous écrivez est personnel par nature, nous le traitons donc en conséquence.",
       privacy_badge1:"Aucune donnée partagée", privacy_badge2:"Aucune donnée collectée", privacy_badge3:"Journal visible par vous seul",
-      privacy_note:"Consultez la politique de confidentialité complète sur la fiche de l'application.",
-      how_eyebrow:"Comment ça marche", how_h2:"Trois étapes du rêve à la compréhension.",
-      step1_title:"Racontez le rêve", step1_desc:"Écrivez ce dont vous vous souvenez, même de façon fragmentée.",
-      step2_title:"Recevez l'interprétation", step2_desc:"L'IA analyse les symboles pour vous offrir un sens clair.",
-      step3_title:"Retrouvez dans le journal", step3_desc:"Toutes les interprétations restent sauvegardées.",
-      cta_h2:"Votre prochain rêve mérite une explication.", cta_p:"Téléchargez Sogni gratuitement sur Android.", cta_button:"Obtenir sur Google Play",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Politique de confidentialité"
+      privacy_note:"Les pratiques de confidentialité sont déclarées par le développeur. Consultez la fiche sur Google Play.",
+      how_eyebrow:"Comment ça marche", how_h2:"Trois étapes, du rêve à la compréhension.",
+      step1_title:"Racontez le rêve", step1_desc:"Écrivez ce dont vous vous souvenez : détails, émotions, images.",
+      step2_title:"Recevez l'interprétation", step2_desc:"L'IA analyse les symboles et vous donne un sens clair.",
+      step3_title:"Retrouvez-le dans le journal", step3_desc:"Chaque interprétation reste sauvegardée.",
+      cta_h2:"Votre prochain rêve mérite une explication.", cta_p:"Téléchargez Sogni gratuitement sur Android dès ce soir.", cta_button:"Obtenir sur Google Play",
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Politique de confidentialité",
+      no_notices:"Aucune annonce pour le moment."
     },
     de: {
       nav_notices:"Hinweise", nav_features:"Funktionen", nav_privacy:"Datenschutz", nav_how:"Wie es funktioniert", nav_cta:"Kostenlos herunterladen",
       hero_eyebrow:"Traumtagebuch & KI-Deutung",
       hero_h1_html:"Jeder Traum hat eine <em>Bedeutung</em>. Erfahre sie beim Aufwachen.",
-      hero_lead:"Erzähle deinen Traum in deinen eigenen Worten: Sogni analysiert ihn mit KI und zeigt dir Symbole, Emotionen und eine klare Deutung.",
+      hero_lead:"Erzähle deinen Traum in eigenen Worten: Sogni analysiert ihn mit KI und zeigt dir Symbole, Emotionen und eine klare Deutung.",
       draft_info:"Du kannst deinen Traum auch als Entwurf speichern und später deuten lassen.",
       hero_cta_primary:"Auf Google Play holen", hero_cta_secondary:"Funktionen entdecken",
-      hero_note_html:"<strong>Keine Daten geteilt, keine Daten gesammelt.</strong> Kostenlos mit Werbung.",
+      hero_note_html:"<strong>Keine Daten geteilt, keine Daten gesammelt.</strong> Kostenlos, mit Werbung.",
       insight_line:"\"steht für das Bedürfnis, die Kontrolle loszulassen\"",
-      notices_eyebrow:"Mitteilungen", notices_h2:"Hinweise & Updates", notices_p:"Bleibe über den Serverstatus und System-Updates informiert.",
-      feat_eyebrow:"Funktionen", feat_h2:"Vom Traum zur Erkenntnis mit wenigen Taps.",
+      notices_eyebrow:"Mitteilungen", notices_h2:"Hinweise & Updates", notices_p:"Bleibe über den Servicestatus und System-Updates informiert.",
+      feat_eyebrow:"Funktionen", feat_h2:"Vom Traum zur Erkenntnis, mit wenigen Taps.",
       feat_p:"Ein Raum für nächtliche Reflexion: schreiben, verstehen, wiederfinden.",
-      feat1_title:"Sofortige KI-Deutung", feat1_desc:"Beschreibe deinen Traum und erhalte eine tiefe Analyse der verborgenen Bedeutungen.",
-      feat2_title:"Persönliches Traumtagebuch", feat2_desc:"Jeder Traum bleibt gespeichert: lies vergangene Deutungen jederzeit nach.",
-      feat3_title:"Für die Nacht entwickelt", feat3_desc:"Eine ruhige, intuitive Benutzeroberfläche für den Morgen oder die Nacht.",
-      feat4_title:"Wiederkehrende Muster erkennen", feat4_desc:"Erkenne Verbindungen zwischen verschiedenen Träumen und Stimmungen.",
-      privacy_eyebrow:"Datenschutz", privacy_h2:"Deine Träume gehören dir.", privacy_p:"Was du schreibst ist persönlich und bleibt geschützt.",
-      privacy_badge1:"Keine Datenweitergabe an Dritte", privacy_badge2:"Keine Datenerfassung", privacy_badge3:"Tagebuch nur für dich sichtbar",
-      privacy_note:"Lies die vollständige Datenschutzerklärung im Store-Eintrag der App.",
+      feat1_title:"Sofortige KI-Deutung", feat1_desc:"Beschreibe deinen Traum und erhalte eine tiefe Analyse der Symbole und Gefühle.",
+      feat2_title:"Persönliches Traumtagebuch", feat2_desc:"Jeder Traum wird gespeichert: Lese vergangene Deutungen erneut.",
+      feat3_title:"Für die Nacht entwickelt", feat3_desc:"Eine ruhige, intuitive Benutzeroberfläche.",
+      feat4_title:"Muster erkennen", feat4_desc:"Erkenne Zusammenhänge zwischen verschiedenen Träumen.",
+      privacy_eyebrow:"Datenschutz", privacy_h2:"Deine Träume gehören dir.", privacy_p:"Was du schreibst ist persönlich, und so behandeln wir es auch.",
+      privacy_badge1:"Keine Daten weitergegeben", privacy_badge2:"Keine Daten gesammelt", privacy_badge3:"Tagebuch nur für dich sichtbar",
+      privacy_note:"Datenschutzbestimmungen werden vom Entwickler angegeben. Siehe Google Play.",
       how_eyebrow:"Wie es funktioniert", how_h2:"Drei Schritte vom Traum zum Verständnis.",
-      step1_title:"Traum erzählen", step1_desc:"Schreibe auf, woran du dich erinnerst, auch in Fragmenten.",
-      step2_title:"Deutung erhalten", step2_desc:"Die KI analysiert Symbole und liefert dir eine klare Bedeutung.",
-      step3_title:"Im Tagebuch wiederfinden", step3_desc:"Jede Deutung bleibt dauerhaft gespeichert.",
-      cta_h2:"Dein nächster Traum verdient eine Erklärung.", cta_p:"Lade Sogni gratis für Android herunter.", cta_button:"Auf Google Play holen",
-      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Datenschutzrichtlinie"
+      step1_title:"Traum erzählen", step1_desc:"Schreibe auf, woran du dich erinnerst.",
+      step2_title:"Deutung erhalten", step2_desc:"Die KI analysiert Symbole und Emotionen.",
+      step3_title:"Im Tagebuch wiederfinden", step3_desc:"Jede Deutung bleibt gespeichert.",
+      cta_h2:"Dein nächster Traum verdient eine Erklärung.", cta_p:"Lade Sogni kostenlos auf Android herunter.", cta_button:"Auf Google Play holen",
+      footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Datenschutzerklärung",
+      no_notices:"Derzeit keine Hinweise vorhanden."
     }
   };
 
-  function getBadgeCss(badgeType) {
-    switch((badgeType || '').toLowerCase()) {
-      case 'maint':
-      case 'manutenzione':
-      case 'maintenance': return 'maint';
-      case 'update':
-      case 'novità':
-      case 'feature': return 'update';
-      default: return 'info';
+  // Helper per formattare la data da Firestore (Timestamp o String)
+  function formatDate(timestamp) {
+    if (!timestamp) return "";
+    let date;
+    if (typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else {
+      date = new Date(timestamp);
+    }
+    if (isNaN(date.getTime())) return "";
+
+    return date.toLocaleDateString(currentLang, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  // Generatore Stelle Sfondo
+  function generateStars() {
+    const starsContainer = document.getElementById('stars');
+    if (!starsContainer) return;
+    starsContainer.innerHTML = '';
+    for (let i = 0; i < 35; i++) {
+      const star = document.createElement('span');
+      star.style.top = Math.random() * 100 + '%';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.animationDelay = (Math.random() * 3.5) + 's';
+      starsContainer.appendChild(star);
     }
   }
 
-  function renderNews() {
+  // Cambia lingua UI
+  function setLanguage(lang) {
+    if (!translations[lang]) return;
+    currentLang = lang;
+
+    // Aggiorna Pulsanti Lingua
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+
+    // Aggiorna Testi Statici
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (translations[lang][key]) {
+        el.textContent = translations[lang][key];
+      }
+    });
+
+    // Aggiorna HTML con Formattazione (es. <em> o <strong>)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const key = el.getAttribute('data-i18n-html');
+      if (translations[lang][key]) {
+        el.innerHTML = translations[lang][key];
+      }
+    });
+
+    // Rirenderizza gli avvisi aggiornando anche il formato della data
+    renderNotices(rawNoticesDocs);
+  }
+
+  // Renderizza gli Avvisi da Firestore
+  function renderNotices(docs) {
     const container = document.getElementById('noticesContainer');
     if (!container) return;
 
-    if (!newsData || newsData.length === 0) {
-      container.innerHTML = `<p style="color:var(--text-muted);">Nessun avviso presente.</p>`;
+    if (!docs || docs.length === 0) {
+      const emptyText = translations[currentLang]?.no_notices || "Nessun avviso.";
+      container.innerHTML = `<p style="color:var(--text-muted); grid-column: 1/-1;">${emptyText}</p>`;
       return;
     }
 
-    container.innerHTML = newsData.map(item => {
-      const title = (item.title && typeof item.title === 'object')
-        ? (item.title[currentLang] || item.title['it'] || item.title['en'] || '')
-        : (item.title || '');
+    container.innerHTML = docs.map(doc => {
+      const data = doc.data();
+      
+      // Estrazione del valore della data (cerca nei campi date o createdAt)
+      const rawDate = data.date || data.createdAt;
+      const formattedDate = formatDate(rawDate);
 
-      const content = (item.content && typeof item.content === 'object')
-        ? (item.content[currentLang] || item.content['it'] || item.content['en'] || '')
-        : (item.content || '');
-
-      const badgeText = (item.badge && typeof item.badge === 'object')
-        ? (item.badge[currentLang] || item.badge['it'] || item.badge['en'] || 'ℹ️ Info')
-        : (item.badge || 'ℹ️ Info');
-
-      const badgeCss = getBadgeCss(item.type || item.badgeType || 'info');
+      // Supporto sia per campi multilingua che per campi stringa semplici
+      const title = (typeof data.title === 'object' && data.title !== null) ? (data.title[currentLang] || data.title['it'] || '') : (data.title || '');
+      const message = (typeof data.message === 'object' && data.message !== null) ? (data.message[currentLang] || data.message['it'] || '') : (data.message || data.text || '');
+      const badgeText = (typeof data.badgeText === 'object' && data.badgeText !== null) ? (data.badgeText[currentLang] || data.badgeText['it'] || '') : (data.badgeText || 'Avviso');
 
       return `
         <div class="notice-card">
-          <span class="notice-badge ${badgeCss}">${badgeText}</span>
+          <div class="notice-header">
+            <span class="notice-badge ${data.type || 'info'}">${badgeText}</span>
+            <span class="notice-date">${formattedDate}</span>
+          </div>
           <h3>${title}</h3>
-          <p>${content}</p>
+          <p>${message}</p>
         </div>
       `;
     }).join('');
   }
 
-  function updatePageLanguage(lang) {
-    currentLang = lang;
-    const dictionary = translations[lang] || translations['it'];
-
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (dictionary[key]) el.textContent = dictionary[key];
-    });
-
-    document.querySelectorAll('[data-i18n-html]').forEach(el => {
-      const key = el.getAttribute('data-i18n-html');
-      if (dictionary[key]) el.innerHTML = dictionary[key];
-    });
-
-    renderNews();
-  }
-
-  const newsRef = collection(db, "news");
-  onSnapshot(newsRef, (snapshot) => {
-    newsData = [];
-    snapshot.forEach(doc => {
-      newsData.push({ id: doc.id, ...doc.data() });
-    });
-    renderNews();
-  }, (error) => {
-    console.error("Errore nel recupero delle news da Firebase:", error);
-    document.getElementById('noticesContainer').innerHTML = `<p style="color:var(--text-muted);">Impossibile caricare gli avvisi.</p>`;
-  });
-
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  // Event Listeners per i Pulsanti Lingua
+  document.getElementById('langSwitch')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.lang-btn');
+    if (btn) {
       const lang = btn.getAttribute('data-lang');
-      updatePageLanguage(lang);
-    });
+      setLanguage(lang);
+    }
   });
+
+  // Inizializzazione
+  generateStars();
+
+  // Listener Firestore Realtime per gli Avvisi
+  try {
+    const noticesRef = collection(db, "notices");
+    const q = query(noticesRef, orderBy("createdAt", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
+      rawNoticesDocs = snapshot.docs;
+      renderNotices(rawNoticesDocs);
+    }, (error) => {
+      console.warn("Fallback query senza ordinamento:", error);
+      onSnapshot(noticesRef, (fallbackSnapshot) => {
+        rawNoticesDocs = fallbackSnapshot.docs;
+        renderNotices(rawNoticesDocs);
+      });
+    });
+  } catch (err) {
+    console.error("Errore di connessione a Firestore:", err);
+    document.getElementById('noticesContainer').innerHTML = `<p style="color:var(--text-muted);">Impossibile caricare gli avvisi.</p>`;
+  }
 </script>
 </body>
 </html>
