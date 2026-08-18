@@ -827,7 +827,7 @@
       });
 
       texts.forEach(text => {
-        if (text) text.textContent = isOnline ? (currentLang === 'it' ? 'Online' : 'Online') : (currentLang === 'it' ? 'Offline' : 'Offline');
+        if (text) text.textContent = isOnline ? 'Online' : 'Offline';
       });
     }
   });
