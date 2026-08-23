@@ -170,6 +170,43 @@
   @media(min-width:860px){.nav-cta{display:inline-flex;}}
   @media(max-width:720px){.nav-links{display:none;}}
 
+  /* ---------- NOTICE BAR (avviso in evidenza) ---------- */
+  #noticeBar{
+    display:none;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:57px;
+    z-index:40;
+  }
+  #noticeBar a{
+    display:flex; align-items:center; gap:10px;
+    max-width:1140px; margin:0 auto; padding:10px 32px;
+    font-size:0.85rem; color:var(--text);
+    transition:background 0.15s ease;
+  }
+  #noticeBar a:hover{background:rgba(185,169,255,0.06);}
+  .notice-bar-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 0 4px rgba(255,178,107,0.18);
+    flex-shrink:0;
+    animation:pulse 2s infinite;
+  }
+  #noticeBarText{
+    flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .notice-bar-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--amber);
+    flex-shrink:0;
+  }
+  .notice-bar-arrow{color:var(--text-muted); flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+
   /* ---------- HERO ---------- */
 
   .hero{
@@ -277,7 +314,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
-    .fragment, .insight-line, .stars span{animation:none; opacity:0.6;}
+    .fragment, .insight-line, .stars span, .notice-bar-dot{animation:none; opacity:0.6;}
   }
 
   /* ---------- SECTION SHARED ---------- */
@@ -446,7 +483,7 @@
     <div class="nav-right">
       <div class="server-status-badge" id="navServerStatus">
         <span class="status-dot" id="navStatusDot"></span>
-        <span id="navStatusText">Verifica...</span>
+        <span id="navStatusText" data-i18n="server_checking">Verifica...</span>
       </div>
 
       <div class="lang-switch" id="langSwitch" role="group" aria-label="Language">
@@ -460,6 +497,16 @@
     </div>
   </div>
 </nav>
+
+<!-- ---------- BARRA AVVISO IN EVIDENZA ---------- -->
+<div id="noticeBar">
+  <a href="#avvisi">
+    <span class="notice-bar-dot"></span>
+    <span class="notice-bar-label" data-i18n="notice_bar_label">Avviso</span>
+    <span id="noticeBarText"></span>
+    <span class="notice-bar-arrow">→</span>
+  </a>
+</div>
 
 <div class="wrap">
 
@@ -594,7 +641,7 @@
     <div class="footer-links">
       <span class="server-status-badge" id="footerServerStatus">
         <span class="status-dot" id="footerStatusDot"></span>
-        <span id="footerStatusText">Server: Verifica...</span>
+        <span id="footerStatusText" data-i18n="server_checking">Verifica...</span>
       </span>
       <a href="https://play.google.com/store/apps/details?id=com.app.sogni" target="_blank" rel="noopener">Google Play</a>
       <a href="https://zanaries.altervista.org/privacy1.html" target="_blank" rel="noopener" data-i18n="footer_link2">Informativa Privacy</a>
@@ -620,6 +667,7 @@
 
   let rawNewsDocs = [];
   let currentLang = 'it';
+  let currentIsOnline = null; // tiene traccia dello stato per riapplicare la traduzione al cambio lingua
 
   const translations = {
     it: {
@@ -632,6 +680,7 @@
       hero_note_html:"<strong>Nessun dato condiviso, nessun dato raccolto.</strong> Gratuita, con annunci.",
       insight_line:"\"rappresenta il bisogno di lasciar andare il controllo\"",
       notices_eyebrow:"Comunicazioni", notices_h2:"Avvisi e Aggiornamenti", notices_p:"Rimani informato sullo stato del servizio, gli aggiornamenti di sistema e le novità.",
+      notice_bar_label:"Avviso",
       feat_eyebrow:"Funzionalità", feat_h2:"Dal sogno all'intuizione, in pochi tocchi.",
       feat_p:"Uno spazio pensato per la riflessione notturna: scrivi, capisci, ritrova.",
       feat1_title:"Interpretazione IA istantanea", feat1_desc:"Descrivi il sogno con parole tue e ricevi un'analisi approfondita di simboli, emozioni e significati nascosti.",
@@ -647,7 +696,8 @@
       step3_title:"Ritrova nel diario", step3_desc:"Ogni interpretazione resta salvata, per notare col tempo i temi che si ripetono.",
       cta_h2:"Il prossimo sogno merita una spiegazione.", cta_p:"Scarica Sogni gratis su Android e inizia il tuo diario onirico stanotte stesso.", cta_button:"Scarica su Google Play",
       footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Informativa Privacy",
-      no_notices:"Nessun avviso al momento."
+      no_notices:"Nessun avviso al momento.",
+      server_checking:"Verifica...", server_online:"Server attivo", server_offline:"Server offline"
     },
     en: {
       nav_notices:"Notices", nav_features:"Features", nav_privacy:"Privacy", nav_how:"How it works", nav_cta:"Download free",
@@ -659,6 +709,7 @@
       hero_note_html:"<strong>No data shared, no data collected.</strong> Free, with ads.",
       insight_line:"\"represents the need to let go of control\"",
       notices_eyebrow:"Announcements", notices_h2:"Notices & Updates", notices_p:"Stay informed about service status, system updates, and new features.",
+      notice_bar_label:"Notice",
       feat_eyebrow:"Features", feat_h2:"From dream to insight, in a few taps.",
       feat_p:"A space built for night-time reflection: write, understand, revisit.",
       feat1_title:"Instant AI interpretation", feat1_desc:"Describe your dream in your own words and get a deep analysis of its symbols, emotions, and hidden meanings.",
@@ -674,7 +725,8 @@
       step3_title:"Find it in your journal", step3_desc:"Every interpretation stays saved, so you can notice recurring themes over time.",
       cta_h2:"Your next dream deserves an answer.", cta_p:"Download Sogni free on Android and start your dream journal tonight.", cta_button:"Get it on Google Play",
       footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Privacy Policy",
-      no_notices:"No notices at the moment."
+      no_notices:"No notices at the moment.",
+      server_checking:"Checking...", server_online:"Server online", server_offline:"Server offline"
     },
     es: {
       nav_notices:"Avisos", nav_features:"Funciones", nav_privacy:"Privacidad", nav_how:"Cómo funciona", nav_cta:"Descargar gratis",
@@ -686,6 +738,7 @@
       hero_note_html:"<strong>Sin datos compartidos, sin datos recopilados.</strong> Gratis, con anuncios.",
       insight_line:"\"representa la necesidad de soltar el control\"",
       notices_eyebrow:"Comunicaciones", notices_h2:"Avisos y Actualizaciones", notices_p:"Mantente informado sobre el estado del servicio, actualizaciones de sistema y novedades.",
+      notice_bar_label:"Aviso",
       feat_eyebrow:"Funciones", feat_h2:"Del sueño a la intuición, en pocos toques.",
       feat_p:"Un espacio pensado para la reflexión nocturna: escribe, comprende, reencuentra.",
       feat1_title:"Interpretación IA instantánea", feat1_desc:"Describe el sueño con tus palabras y recibe un análisis profundo de símbolos, emociones y significados ocultos.",
@@ -701,7 +754,8 @@
       step3_title:"Encuéntralo en tu diario", step3_desc:"Cada interpretación se guarda para que notes patrones con el tiempo.",
       cta_h2:"Tu próximo sueño merece una explicación.", cta_p:"Descarga Sogni gratis en Android y comienza tu diario nocturno hoy.", cta_button:"Descargar en Google Play",
       footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Política de privacidad",
-      no_notices:"No hay avisos en este momento."
+      no_notices:"No hay avisos en este momento.",
+      server_checking:"Comprobando...", server_online:"Servidor activo", server_offline:"Servidor fuera de línea"
     },
     fr: {
       nav_notices:"Annonces", nav_features:"Fonctionnalités", nav_privacy:"Confidentialité", nav_how:"Comment ça marche", nav_cta:"Télécharger",
@@ -713,6 +767,7 @@
       hero_note_html:"<strong>Aucune donnée partagée, aucune donnée collectée.</strong> Gratuit, avec annonces.",
       insight_line:"\"représente le besoin de lâcher prise\"",
       notices_eyebrow:"Communications", notices_h2:"Annonces et Mises à jour", notices_p:"Restez informé de l'état du service, des mises à jour du système et des nouveautés.",
+      notice_bar_label:"Annonce",
       feat_eyebrow:"Fonctionnalités", feat_h2:"Du rêve à l'intuition, en quelques gestes.",
       feat_p:"Un espace conçu pour la réflexion nocturne : écrivez, comprenez, retrouvez.",
       feat1_title:"Interprétation IA instantanée", feat1_desc:"Décrivez votre rêve avec vos mots et recevez une analyse approfondie des symboles, des émotions et des significations cachées.",
@@ -728,7 +783,8 @@
       step3_title:"Retrouvez-le dans le journal", step3_desc:"Chaque interprétation reste enregistrée pour observer l'évolution dans le temps.",
       cta_h2:"Votre prochain rêve mérite une explication.", cta_p:"Téléchargez Sogni gratuitement sur Android et commencez votre journal ce soir.", cta_button:"Télécharger sur Google Play",
       footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Politique de confidentialité",
-      no_notices:"Aucune annonce pour le moment."
+      no_notices:"Aucune annonce pour le moment.",
+      server_checking:"Vérification...", server_online:"Serveur actif", server_offline:"Serveur hors ligne"
     },
     de: {
       nav_notices:"Hinweise", nav_features:"Funktionen", nav_privacy:"Datenschutz", nav_how:"Wie es funktioniert", nav_cta:"Kostenlos herunterladen",
@@ -740,6 +796,7 @@
       hero_note_html:"<strong>Keine Daten geteilt, keine Daten gesammelt.</strong> Kostenlos, mit Werbung.",
       insight_line:"\"steht für das Bedürfnis, die Kontrolle loszulassen\"",
       notices_eyebrow:"Mitteilungen", notices_h2:"Hinweise & Updates", notices_p:"Bleibe über den Status, System-Updates und Neuigkeiten informiert.",
+      notice_bar_label:"Hinweis",
       feat_eyebrow:"Funktionen", feat_h2:"Vom Traum zur Erkenntnis, mit wenigen Klicks.",
       feat_p:"Ein Raum für nächtliche Reflexion: Schreiben, Verstehen, Wiederfinden.",
       feat1_title:"Sofortige KI-Traumdeutung", feat1_desc:"Beschreibe deinen Traum in eigenen Worten für eine tiefgehende Analyse von Symbolen und Emotionen.",
@@ -755,7 +812,8 @@
       step3_title:"Im Tagebuch wiederfinden", step3_desc:"Jede Deutung bleibt gespeichert, um wiederkehrende Themen zu verfolgen.",
       cta_h2:"Dein nächster Traum verdient eine Antwort.", cta_p:"Lade Sogni kostenlos für Android herunter und starte heute Nacht dein Traumtagebuch.", cta_button:"Auf Google Play holen",
       footer_copy:"© 2026 Sogni — Roberto Zanaboni", footer_link2:"Datenschutzerklärung",
-      no_notices:"Derzeit keine Hinweise."
+      no_notices:"Derzeit keine Hinweise.",
+      server_checking:"Überprüfung...", server_online:"Server aktiv", server_offline:"Server offline"
     }
   };
 
@@ -791,13 +849,23 @@
     }).format(dateObj);
   }
 
-  // Renderizza la griglia delle news
+  // Renderizza la griglia delle news + la barra dell'avviso più recente
   function renderNews() {
     if (!noticesContainer) return;
 
+    const bar = document.getElementById('noticeBar');
+    const barText = document.getElementById('noticeBarText');
+
     if (rawNewsDocs.length === 0) {
       noticesContainer.innerHTML = `<p style="color:var(--text-muted);">${translations[currentLang].no_notices}</p>`;
+      if (bar) bar.style.display = 'none';
       return;
+    }
+
+    // Mostra l'avviso più recente nella barra in evidenza sotto la nav
+    if (bar && barText) {
+      barText.textContent = getLocalizedText(rawNewsDocs[0].title, currentLang);
+      bar.style.display = 'block';
     }
 
     noticesContainer.innerHTML = '';
@@ -856,6 +924,8 @@
   }
 
   function updateServerStatusUI(isOnline) {
+    currentIsOnline = isOnline;
+
     const dots = [document.getElementById('navStatusDot'), document.getElementById('footerStatusDot')];
     const texts = [document.getElementById('navStatusText'), document.getElementById('footerStatusText')];
 
@@ -863,8 +933,9 @@
       if (dot) dot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
     });
 
+    const key = isOnline ? 'server_online' : 'server_offline';
     texts.forEach(text => {
-      if (text) text.textContent = isOnline ? 'Online' : 'Offline';
+      if (text) text.textContent = translations[currentLang][key];
     });
   }
 
@@ -899,6 +970,11 @@
         btn.classList.remove('active');
       }
     });
+
+    // Riapplica lo stato online/offline già noto nella nuova lingua
+    if (currentIsOnline !== null) {
+      updateServerStatusUI(currentIsOnline);
+    }
 
     renderNews();
   }
