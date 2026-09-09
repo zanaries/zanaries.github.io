@@ -1,0 +1,11 @@
+# AVVISI — Dreams AI Interpretation
+# Scrivi ogni avviso con il titolo sulla prima riga e il testo sulle righe successive.
+# Separa gli avvisi con una riga contenente soltanto ---.
+# Inserisci l’avviso più recente per primo: apparirà anche nella barra in alto.
+# Le righe che iniziano con # sono commenti e non vengono mostrate.
+# Salva in UTF-8. Un file vuoto o contenente solo commenti non mostra avvisi.
+# Il testo degli avvisi è mostrato come scritto, in tutte le lingue dell’interfaccia.
+#
+# ESEMPIO (rimuovi # dalle prossime due righe per renderlo visibile):
+# Titolo dell’avviso
+# Testo dell’avviso, anche su più righe.
